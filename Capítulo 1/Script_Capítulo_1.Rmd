@@ -1,0 +1,335 @@
+---
+title: "Relatorio Tese - Capítulo 1"
+author: "Denilson Junio Marques Soares"
+date: '2023-01-30'
+output: html_document
+---
+# Análises da Tese - Capítulo 1
+
+##### Carregamento de Pacotes
+
+```{r pacotes, message=FALSE, warning=FALSE}
+library(ggplot2)
+library(dplyr)
+library(babynames)
+library(ggrepel)
+library(tidyr)
+library(hrbrthemes)
+library(readxl)
+library(ltm)
+library(geobr)
+library(sf)
+library(dplyr)
+library(rio)
+library(readr)
+library(leaflet)
+library(geometry)
+library(RColorBrewer)
+library(GGally)
+library(rmarkdown)
+```
+#
+#
+#
+##### Carregamento do banco de dados
+
+```{r, message=FALSE, warning=FALSE, results=FALSE}
+setwd("C:\\Users\\UFES\\Desktop\\Tese_DenilsonSoares\\Capítulo 1") 
+dados <- read_excel("dados_IR.xlsx")
+all_mun_ms <- read_municipality(code_muni=32, year=1991)
+dataset_final = left_join(all_mun_ms, dados, by=c("code_muni"="Codmun7"))
+```
+
+
+&nbsp;
+
+
+
+### GRÁFICO 1 
+
+
+&nbsp;
+
+
+
+#### Comparação entre o Indicador de rendimento de 2019 e 2021 dos municípios do Espírito Santo no Ensino Médio
+
+
+&nbsp;
+
+
+
+```{r, warning=FALSE}
+ggplot(dataset_final) +
+  geom_point(mapping = aes(x = IR_2019, y = IR_2021), shape=21, color="black", fill="#69b3a2", size=4) +
+  xlab("Indicador de rendimento - 2019") + ylab("Indicador de rendimento - 2021") +
+  geom_abline(intercept = 0, slope = 1, color = "black", size=2)+
+  xlim(0.85, 1)+ylim(0.85, 1)+
+  theme_ipsum()
+```
+
+
+
+
+&nbsp;
+
+
+
+### GRÁFICO 2 
+
+
+&nbsp;
+
+
+
+#### Modelo de regressão logística e comportamento esperado do Ideb ao longo dos anos
+##### Obs.: Gráfico alterado
+
+
+&nbsp;
+
+
+
+```{r, warning=FALSE}
+data(LSAT)
+CCI<-ltm(LSAT~z1)
+plot(CCI,items=3, xlab="Tempo (em anos)", ylab="IDEB", main = "")
+```
+
+
+
+
+&nbsp;
+
+
+
+### GRÁFICO 3 
+
+
+&nbsp;
+
+
+
+#### Evolução na Taxa de aprovação (2005 – 2021) para o Ensino Médio no Espírito Santo
+
+
+&nbsp;
+
+
+
+```{r, warning=FALSE}
+dados <- data.frame( Mes = c(2005, 2007, 2009, 2011, 2013, 2015, 2017, 2019, 2021),
+                     Lg1 = c('1a série EM', '1a série EM','1a série EM','1a série EM','1a série EM','1a série EM','1a série EM','1a série EM','1a série EM'),
+                     total1=c(67.8,70.9,67.2,64.7,67.5,70,75.6,83.1,91.1),
+                     Lg2 = c('2a série EM', '2a série EM','2a série EM','2a série EM','2a série EM','2a série EM','2a série EM','2a série EM','2a série EM'),
+                     total2=c(76.8,78.8,76.4,76.2,81.4,82.4,87.3,90.3,89.5),
+                     Lg3 = c('3a série EM', '3a série EM','3a série EM','3a série EM','3a série EM','3a série EM','3a série EM','3a série EM','3a série EM'),
+                     total3=c(83.8,84.4,84,86.1,90.6,92,95.1,96.2,94.7))
+
+
+p = ggplot(dados, aes(x = Mes)) +
+  geom_line(aes(y = total1, color="1a série EM"), size=1, group = 1, linetype=1) +
+  geom_line(aes(y = total2, color="2a série EM"), size=1, group = 1, linetype=1) +
+  geom_line(aes(y = total2, color="3a série EM"), size=1, group = 1, linetype=1) +
+  
+  geom_point(aes(y = total1), color="sienna4", shape = 21, fill="sienna4", size=4) +
+  geom_point(aes(y = total2), color="dodgerblue4", shape = 22,  fill="dodgerblue4", size=4) +
+  geom_point(aes(y = total3), color="black", size=3.5, shape = 23, fill="black", size=4) +
+  ggtitle("")+
+  labs(y = "Taxa de Aprovação", x = "Edição do Ideb") +
+  theme_ipsum()+
+  theme(legend.position=c(0.835, 0.15)) 
+
+
+p + expand_limits(x = 2005, y = c(60,100))
+```
+
+
+
+
+&nbsp;
+
+
+
+### GRÁFICO 4 
+
+
+&nbsp;
+
+
+
+#### Distorção Idade-Série (2017 – 2021) para o Ensino Médio no Espírito Santo
+
+
+&nbsp;
+
+
+
+```{r, warning=FALSE}
+data_frame <- data.frame( Matriculas = c(26.8, 35.4, 24.1,
+                                         27.1, 36.1, 24.9,
+                                         27.0, 33.3, 26.2,
+                                         26.9, 32.9,24.8, 
+                                         25.1, 27.5, 26.8),
+                          Etapa = c('1a Série', '2a Série','3a Série',
+                                  '1a Série', '2a Série','3a Série',
+                                  '1a Série', '2a Série','3a Série',
+                                  '1a Série', '2a Série','3a Série',
+                                  '1a Série', '2a Série','3a Série'),
+                          Ano = c('2017','2017','2017','2018','2018',
+                                    '2018','2019','2019','2019','2020',
+                                    '2020','2020','2021','2021','2021'))
+
+ggplot(data_frame, aes(x = Ano, y = Matriculas, fill = Etapa, label= Matriculas),)+ 
+geom_col(position = "dodge", width=.8) +
+  geom_text(position = position_dodge(width = 0.95), vjust = -0.5) +
+  xlab("Ano") +
+  ylab("DIS para o Ensino Médio no Espírito Santo (em %)") +
+  theme_ipsum()
+```
+
+
+
+
+&nbsp;
+
+
+
+### GRÁFICO 5 
+
+
+&nbsp;
+
+
+
+#### Proficiência padronizada em Matemática (2005 - 2021) no Espírito Santo
+
+
+&nbsp;
+
+
+
+```{r, warning=FALSE}
+dados <- data.frame( Mes = c(2005, 2007, 2009, 2011, 2013, 2015, 2017, 2019, 2021),
+                     Lg1 = c('Matemática', 'Matemática','Matemática','Matemática','Matemática','Matemática','Matemática','Matemática','Matemática'),
+                     total1=c(4.44,4.24,4.68,4.52,4.4,4.5,4.65,5,4.69),
+                     Lg2 = c('Língua Portuguesa', 'Língua Portuguesa','Língua Portuguesa','Língua Portuguesa','Língua Portuguesa','Língua Portuguesa','Língua Portuguesa','Língua Portuguesa','Língua Portuguesa'),
+                     total2=c(4.21,3.97,4.63,4.23,4.18,4.59,4.78,5.09,4.85))
+
+
+p = ggplot(dados, aes(x = Mes)) +
+  geom_line(aes(y = total1, color="Matemática"), size=1, group = 1, linetype=1) +
+  geom_line(aes(y = total2, color="Língua Portuguesa"), size=1, group = 1, linetype=1) +
+
+  geom_point(aes(y = total1), color="black", size=4, group = 1, shape=18) +
+  geom_point(aes(y = total2), color="darkorchid1", size=3.5, group = 1) +
+  labs(y = "Proficiência padronizada", x = "Edição do Saeb") +
+  scale_color_manual(name="Legenda", values=c("#FFCCFF", "#003c30"), 
+                     guide = guide_legend(override.aes=aes(fill=group))) +
+  theme_ipsum()+
+  theme(legend.position=c(0.8, 0.2)) +
+  theme(legend.text=element_text(size=rel(0.9))) 
+
+
+p + expand_limits(x = 2005, y = c(3.7,5.3))
+```
+
+
+
+
+&nbsp;
+
+
+
+### GRÁFICO 6 
+
+
+&nbsp;
+
+
+
+#### Percentual de estudantes com aprendizado adequado para o Ensino Médio no Espírito Santo
+
+
+&nbsp;
+
+
+
+```{r, warning=FALSE}
+data_frame <- data.frame( Matriculas = c( 7, 12, 15,
+                                          29, 38, 48),
+                          Ano = c('2015', '2017','2019',
+                                  '2015', '2017','2019'),
+                          Etapa = c('Matemática','Matemática','Matemática',
+                                    'Língua Portuguesa','Língua Portuguesa', 'Língua Portuguesa'))
+
+# plotting a barplot with counts
+q= ggplot(data_frame, aes(x = Etapa, y = Matriculas, fill = Ano, label = Matriculas),)+ 
+  geom_col(position='dodge', width=.6)+
+  geom_text(position = position_dodge(width = 0.6), vjust = -0.5) +
+  xlab("Etapa de Ensino") +
+  ylab("Percentual de estudantes com aprendizado adequado") +
+  theme_ipsum()
+
+q + expand_limits(y = c(0,55))
+```
+
+
+
+
+&nbsp;
+
+
+
+### FIGURA 4 
+
+
+&nbsp;
+
+
+
+#### Evolução do Ideb no ensino médio na rede pública do Estado do Espírito Santo
+
+
+&nbsp;
+
+
+```{r, warning=FALSE}
+Dados_Ideb <- read_excel("Dados_Ideb.xlsx")
+dataset_Ideb_EM = left_join(all_mun_ms, Dados_Ideb, by=c("code_muni"="Codigo_Mun"))
+
+ggplot() +
+  geom_sf(data=dataset_Ideb_EM, aes(fill=EM2021), color= NA, size=.15)+
+  labs(title="Ideb 2021 - Ensino Médio",
+       caption='', size=8)+
+  scale_fill_distiller(palette = "RdYlBu", limits=c(1.8, 5.8),
+                       name="Ideb")+
+  theme_minimal()
+
+
+
+ggplot() +
+  geom_sf(data=dataset_Ideb_EM, aes(fill=EM2019), color= NA, size=.15)+
+  labs(title="Ideb 2019 - Ensino Médio",
+       caption='', size=8)+
+  scale_fill_distiller(palette = "RdYlBu", limits=c(1.8, 5.8),
+                       name="Ideb")+
+  theme_minimal()
+
+
+ggplot() +
+  geom_sf(data=dataset_Ideb_EM, aes(fill=EM2017), color= NA, size=.15)+
+  labs(title="Ideb 2017 - Ensino Médio",
+       caption='', size=8)+
+  scale_fill_distiller(palette = "RdYlBu", limits=c(1.8, 5.8),
+                       name="Ideb")+
+  theme_minimal()
+```
+
+
+
+
+&nbsp;
+
+
+

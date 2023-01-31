@@ -1,0 +1,366 @@
+
+###################################################################################
+###################################################################################
+########################### Carregando os pacotes #################################
+###################################################################################
+###################################################################################
+
+
+if(!require(ggplot2)) install.packages("ggplot2")
+library(ggplot2),
+if(!require(dplyr)) install.packages("dplyr")
+library(dplyr)
+if(!require(babynames)) install.packages("babynames")
+library(babynames)
+if(!require(ggrepel)) install.packages("ggrepel")
+library(ggrepel)
+if(!require(tidyr)) install.packages("tidyr")
+library(tidyr)
+if(!require(hrbrthemes)) install.packages("hrbrthemes")
+library(hrbrthemes)
+if(!require(readxl)) install.packages("readxl")
+library(readxl)
+if(!require(ltm)) install.packages("ltm")
+library(ltm)
+if(!require(geobr)) install.packages("geobr")
+library(geobr)
+if(!require(sf)) install.packages("sf")
+library(sf)
+if(!require(dplyr)) install.packages("dplyr")
+library(dplyr)
+if(!require(rio)) install.packages("rio")
+library(rio)
+if(!require(readr)) install.packages("readr")
+library(readr)
+if(!require(leaflet)) install.packages("leaflet")
+library(leaflet)
+if(!require(geometry)) install.packages("geometry")
+library(geometry)
+if(!require(RColorBrewer)) install.packages("RColorBrewer")
+library(RColorBrewer)
+if(!require(GGally)) install.packages("GGally")
+library(GGally)
+
+
+
+###################################################################################
+###################################################################################
+######################### Leitura do Banco de Dados ###############################
+###################################################################################
+###################################################################################
+
+setwd("C:\\Users\\UFES\\Desktop\\Gráficos") 
+getwd()
+
+#Dados Brutos
+
+dados <- read_excel("dados.xlsx")
+summary(dados)
+
+#Mapas
+
+all_mun_ms <- read_municipality(code_muni=32, year=1991)
+mapa<- read_excel("mapa.xlsx")
+dataset_final = left_join(all_mun_ms, mapa, by=c("code_muni"="Codmun7"))
+
+
+###################################################################################
+###################################################################################
+################################# GRÁFICO 1 #######################################
+###################################################################################
+###################################################################################
+
+#Comparação entre o Indicador de rendimento de 2019 e 2021 dos municípios do Espírito Santo no Ensino Médio
+
+ggplot(dados) +
+  geom_point(mapping = aes(x = IR_2019, y = IR_2021), shape=21, color="black", fill="#69b3a2", size=4) +
+  xlab("Indicador de rendimento - 2019") + ylab("Indicador de rendimento - 2021") +
+  geom_abline(intercept = 0, slope = 1, color = "black", size=2)+
+  xlim(0.85, 1)+ylim(0.85, 1)+
+  theme_ipsum()
+
+
+###################################################################################
+###################################################################################
+################################# GRÁFICO 2 #######################################
+###################################################################################
+###################################################################################
+
+#Modelo de regressão logística e comportamento esperado do Ideb ao longo dos anos
+#Obs.: Gráfico alterado
+
+data(LSAT)
+descript(LSAT)
+CCI<-ltm(LSAT~z1)
+plot(CCI,items=3, xlab="Tempo (em anos)", ylab="IDEB", main = "")
+
+
+###################################################################################
+################################# GRÁFICO 3 #######################################
+###################################################################################
+###################################################################################
+
+
+#Evolução na Taxa de aprovação (2005 – 2021) para o Ensino Médio no Espírito Santo
+
+dados <- data.frame( Mes = c(2005, 2007, 2009, 2011, 2013, 2015, 2017, 2019, 2021),
+                     Lg1 = c('1a série EM', '1a série EM','1a série EM','1a série EM','1a série EM','1a série EM','1a série EM','1a série EM','1a série EM'),
+                     total1=c(67.8,70.9,67.2,64.7,67.5,70,75.6,83.1,91.1),
+                     Lg2 = c('2a série EM', '2a série EM','2a série EM','2a série EM','2a série EM','2a série EM','2a série EM','2a série EM','2a série EM'),
+                     total2=c(76.8,78.8,76.4,76.2,81.4,82.4,87.3,90.3,89.5),
+                     Lg3 = c('3a série EM', '3a série EM','3a série EM','3a série EM','3a série EM','3a série EM','3a série EM','3a série EM','3a série EM'),
+                     total3=c(83.8,84.4,84,86.1,90.6,92,95.1,96.2,94.7))
+
+
+p = ggplot(dados, aes(x = Mes)) +
+  geom_line(aes(y = total1, color="1a série EM"), size=1, group = 1, linetype=1) +
+  geom_line(aes(y = total2, color="2a série EM"), size=1, group = 1, linetype=1) +
+  geom_line(aes(y = total2, color="3a série EM"), size=1, group = 1, linetype=1) +
+  
+  geom_point(aes(y = total1), color="sienna4", shape = 21, fill="sienna4", size=4) +
+  geom_point(aes(y = total2), color="dodgerblue4", shape = 22,  fill="dodgerblue4", size=4) +
+  geom_point(aes(y = total3), color="black", size=3.5, shape = 23, fill="black", size=4) +
+  
+  ggtitle("")+
+  labs(y = "Taxa de Aprovação", x = "Edição do Ideb") +
+  theme_ipsum()+
+  theme(legend.position=c(0.835, 0.15)) 
+
+
+p + expand_limits(x = 2005, y = c(60,100))
+
+
+###################################################################################
+################################# GRÁFICO 4 #######################################
+###################################################################################
+###################################################################################
+
+# Distorção Idade-Série (2017 – 2021) para o Ensino Médio no Espírito Santo
+
+data_frame <- data.frame( Matriculas = c(26.8, 35.4, 24.1,
+                                         27.1, 36.1, 24.9,
+                                         27.0, 33.3, 26.2,
+                                         26.9, 32.9,24.8, 
+                                         25.1, 27.5, 26.8),
+                          Etapa = c('1a Série', '2a Série','3a Série',
+                                  '1a Série', '2a Série','3a Série',
+                                  '1a Série', '2a Série','3a Série',
+                                  '1a Série', '2a Série','3a Série',
+                                  '1a Série', '2a Série','3a Série'),
+                          Ano = c('2017','2017','2017','2018','2018',
+                                    '2018','2019','2019','2019','2020',
+                                    '2020','2020','2021','2021','2021'))
+
+ggplot(data_frame, aes(x = Ano, y = Matriculas, fill = Etapa, label= Matriculas),)+ 
+geom_col(position = "dodge", width=.8) +
+  geom_text(position = position_dodge(width = 0.95), vjust = -0.5) +
+  xlab("Ano") +
+  ylab("DIS para o Ensino Médio no Espírito Santo (em %)") +
+  theme_ipsum()
+
+
+###################################################################################
+################################# GRÁFICO 5 #######################################
+###################################################################################
+###################################################################################
+
+#Proficiência padronizada em Matemática (2005 - 2021) no Espírito Santo
+
+dados <- data.frame( Mes = c(2005, 2007, 2009, 2011, 2013, 2015, 2017, 2019, 2021),
+                     Lg1 = c('Matemática', 'Matemática','Matemática','Matemática','Matemática','Matemática','Matemática','Matemática','Matemática'),
+                     total1=c(4.44,4.24,4.68,4.52,4.4,4.5,4.65,5,4.69),
+                     Lg2 = c('Língua Portuguesa', 'Língua Portuguesa','Língua Portuguesa','Língua Portuguesa','Língua Portuguesa','Língua Portuguesa','Língua Portuguesa','Língua Portuguesa','Língua Portuguesa'),
+                     total2=c(4.21,3.97,4.63,4.23,4.18,4.59,4.78,5.09,4.85))
+
+
+p = ggplot(dados, aes(x = Mes)) +
+  geom_line(aes(y = total1, color="Matemática"), size=1, group = 1, linetype=1) +
+  geom_line(aes(y = total2, color="Língua Portuguesa"), size=1, group = 1, linetype=1) +
+
+  geom_point(aes(y = total1), color="black", size=4, group = 1, shape=18) +
+  geom_point(aes(y = total2), color="darkorchid1", size=3.5, group = 1) +
+  labs(y = "Proficiência padronizada", x = "Edição do Saeb") +
+  scale_color_manual(name="Legenda", values=c("#FFCCFF", "#003c30"), 
+                     guide = guide_legend(override.aes=aes(fill=group))) +
+  theme_ipsum()+
+  theme(legend.position=c(0.8, 0.2)) +
+  theme(legend.text=element_text(size=rel(0.9))) 
+
+
+p + expand_limits(x = 2005, y = c(3.7,5.3))
+
+
+
+###################################################################################
+################################# GRÁFICO 6 #######################################
+###################################################################################
+###################################################################################
+
+#Percentual de estudantes com aprendizado adequado para o Ensino Médio no Espírito Santo
+
+data_frame <- data.frame( Matriculas = c( 7, 12, 15,
+                                          29, 38, 48),
+                          Ano = c('2015', '2017','2019',
+                                  '2015', '2017','2019'),
+                          Etapa = c('Matemática','Matemática','Matemática',
+                                    'Língua Portuguesa','Língua Portuguesa', 'Língua Portuguesa'))
+
+
+# printing the data frame
+print ("Original DataFrame")
+print (data_frame)
+
+# plotting a barplot with counts
+q= ggplot(data_frame, aes(x = Etapa, y = Matriculas, fill = Ano, label = Matriculas),)+ 
+  geom_col(position='dodge', width=.6)+
+  geom_text(position = position_dodge(width = 0.6), vjust = -0.5) +
+  xlab("Etapa de Ensino") +
+  ylab("Percentual de estudantes com aprendizado adequado") +
+  theme_ipsum()
+
+q + expand_limits(y = c(0,55))
+
+
+###################################################################################
+################################## FIGURA 3 #######################################
+###################################################################################
+###################################################################################
+
+#Evolução do Ideb no ensino médio na rede pública do Estado do Espírito Santo
+
+
+Dados_Ideb <- read_excel("Dados_Ideb.xlsx")
+dataset_Ideb_EM = left_join(all_mun_ms, Dados_Ideb, by=c("code_muni"="Codigo_Mun"))
+
+ggplot() +
+  geom_sf(data=dataset_Ideb_EM, aes(fill=EM2021), color= NA, size=.15)+
+  labs(title="Ideb 2021 - Ensino Médio",
+       caption='', size=8)+
+  scale_fill_distiller(palette = "RdYlBu", limits=c(1.8, 5.8),
+                       name="Ideb")+
+  theme_minimal()
+
+
+
+ggplot() +
+  geom_sf(data=dataset_Ideb_EM, aes(fill=EM2019), color= NA, size=.15)+
+  labs(title="Ideb 2019 - Ensino Médio",
+       caption='', size=8)+
+  scale_fill_distiller(palette = "RdYlBu", limits=c(1.8, 5.8),
+                       name="Ideb")+
+  theme_minimal()
+
+
+ggplot() +
+  geom_sf(data=dataset_Ideb_EM, aes(fill=EM2017), color= NA, size=.15)+
+  labs(title="Ideb 2017 - Ensino Médio",
+       caption='', size=8)+
+  scale_fill_distiller(palette = "RdYlBu", limits=c(1.8, 5.8),
+                       name="Ideb")+
+  theme_minimal()
+
+min(dataset_Ideb_EM$EM2021)
+
+
+
+
+###################################################################################
+################################ FIGURAS 5 e 6 ####################################
+###################################################################################
+###################################################################################
+
+
+diag_fun <- function(data, mapping, hist=list(), ...){
+  
+  X = eval_data_col(data, mapping$x)
+  mn = mean(X)
+  s = sd(X)
+  
+  ggplot(data, mapping) + 
+    do.call(function(...) geom_histogram(aes(y =..density..), ...), hist) +
+    stat_function(fun = dnorm, args = list(mean = mn, sd = s), ...)
+}
+
+
+############### 5° Ano ################
+
+
+Dados_IDeA_5ano <- read_excel("Dados_IDeA_5ano.xlsx")
+
+ggpairs(Dados_IDeA_5ano[ , 3:10],  diag = list(continuous = wrap(diag_fun, hist=list(fill="gray", colour="Blue"), 
+                                                  colour="Black", lwd=1)),
+        lower = list(continuous = wrap("smooth", color="Blue", se=T)))  +theme_bw()
+
+
+############### 9° Ano ################
+
+
+Dados_IDeA_9ano <- read_excel("Dados_IDeA_9ano.xlsx")
+
+ggpairs(Dados_IDeA_9ano[ , 3:10],  diag = list(continuous = wrap(diag_fun, hist=list(fill="gray", colour="Blue"), 
+                                                                 colour="Black", lwd=1)),
+        lower = list(continuous = wrap("smooth", color="Blue", se=T)))  +theme_bw()
+
+summary(Dados_IDeA_9ano$Raça_Port)
+
+
+
+
+###################################################################################
+################################ FIGURAS 7 e 8 ####################################
+###################################################################################
+###################################################################################
+
+all_mun_ms <- read_municipality(code_muni=32, year=1991)
+head(all_mun_ms)
+
+######### 5 ano #######
+
+dataset_5ano = left_join(all_mun_ms, Dados_IDeA_5ano, by=c("code_muni"="código_município"))
+
+ggplot() +
+  geom_sf(data=dataset_5ano, aes(fill=Matemática), color= NA, size=.15)+
+  labs(title="Aprendizagem em Matemática - 5° ano",
+       caption='', size=8)+
+  scale_fill_distiller(palette = "RdYlBu", limits=c(min(dataset_5ano$Matemática), max(dataset_5ano$Matemática)),
+                       name="IDeA")+
+  theme_minimal()
+
+
+ggplot() +
+  geom_sf(data=dataset_5ano, aes(fill=Português), color= NA, size=.15)+
+  labs(title="Aprendizagem em Português - 5° ano",
+       caption='', size=8)+
+  scale_fill_distiller(palette = "RdYlBu", limits=c(min(dataset_5ano$Português), max(dataset_5ano$Português)),
+                       name="IDeA")+
+  theme_minimal()
+
+
+
+
+######### 9 ano #######
+
+dataset_9ano = left_join(all_mun_ms, Dados_IDeA_9ano, by=c("code_muni"="código_município"))
+
+ggplot() +
+  geom_sf(data=dataset_9ano, aes(fill=Matemática), color= NA, size=.15)+
+  labs(title="Aprendizagem em Matemática - 9° ano",
+       caption='', size=8)+
+  scale_fill_distiller(palette = "RdYlBu", limits=c(min(dataset_9ano$Matemática), max(dataset_9ano$Matemática)),
+                       name="IDeA")+
+  theme_minimal()
+
+
+ggplot() +
+  geom_sf(data=dataset_9ano, aes(fill=Português), color= NA, size=.15)+
+  labs(title="Aprendizagem em Português - 9° ano",
+       caption='', size=8)+
+  scale_fill_distiller(palette = "RdYlBu", limits=c(min(dataset_9ano$Português), max(dataset_9ano$Português)),
+                       name="IDeA")+
+  theme_minimal()
+
+
+
+
+
+

@@ -1,0 +1,179 @@
+---
+title: "Relatorio Tese - Capítulo 2"
+author: "Denilson Junio Marques Soares"
+date: '2023-01-30'
+output: html_document
+---
+# Análises da Tese - Capítulo 2
+
+##### Carregamento de Pacotes
+
+```{r pacotes, message=FALSE, warning=FALSE}
+library(ggplot2)
+library(dplyr)
+library(babynames)
+library(ggrepel)
+library(tidyr)
+library(hrbrthemes)
+library(readxl)
+library(ltm)
+library(geobr)
+library(sf)
+library(dplyr)
+library(rio)
+library(readr)
+library(leaflet)
+library(geometry)
+library(RColorBrewer)
+library(GGally)
+library(rmarkdown)
+```
+#
+#
+#
+##### Diretório
+
+```{r, message=FALSE, warning=FALSE, results=FALSE}
+setwd("C:\\Users\\UFES\\Desktop\\Tese_DenilsonSoares\\Capítulo 2") 
+```
+
+
+&nbsp;
+
+
+
+
+### FIGURAS 5 e 6
+
+
+&nbsp;
+
+
+
+#### Correlação entre nível de aprendizagem no 5°e 9° anos do Ensino Fundamental e desigualdades por NSE, Raça e Gênero
+
+
+
+&nbsp;
+
+
+
+```{r, warning=FALSE, message=FALSE}
+diag_fun <- function(data, mapping, hist=list(), ...){
+  
+  X = eval_data_col(data, mapping$x)
+  mn = mean(X)
+  s = sd(X)
+  
+  ggplot(data, mapping) + 
+    do.call(function(...) geom_histogram(aes(y =..density..), ...), hist) +
+    stat_function(fun = dnorm, args = list(mean = mn, sd = s), ...)
+}
+```
+
+
+
+&nbsp;
+
+
+
+```{r, warning=FALSE, message=FALSE}
+Dados_IDeA_5ano <- read_excel("Dados_IDeA_5ano.xlsx")
+
+ggpairs(Dados_IDeA_5ano[ , 3:10],  diag = list(continuous = wrap(diag_fun, hist=list(fill="gray", colour="Blue"), 
+                                                  colour="Black", lwd=1)),
+        lower = list(continuous = wrap("smooth", color="Blue", se=T)))  +theme_bw()
+```
+
+
+
+&nbsp;
+
+
+
+```{r, warning=FALSE, message=FALSE}
+Dados_IDeA_9ano <- read_excel("Dados_IDeA_9ano.xlsx")
+
+ggpairs(Dados_IDeA_9ano[ , 3:10],  diag = list(continuous = wrap(diag_fun, hist=list(fill="gray", colour="Blue"), 
+                                                                 colour="Black", lwd=1)),
+        lower = list(continuous = wrap("smooth", color="Blue", se=T)))  +theme_bw()
+```
+
+
+
+&nbsp;
+
+
+
+```{r, warning=FALSE, message=FALSE, results=FALSE}
+all_mun_ms <- read_municipality(code_muni=32, year=1991)
+head(all_mun_ms)
+```
+
+
+
+&nbsp;
+
+
+
+```{r, warning=FALSE, message=FALSE}
+dataset_5ano = left_join(all_mun_ms, Dados_IDeA_5ano, by=c("code_muni"="código_município"))
+
+ggplot() +
+  geom_sf(data=dataset_5ano, aes(fill=Matemática), color= NA, size=.15)+
+  labs(title="Aprendizagem em Matemática - 5° ano",
+       caption='', size=8)+
+  scale_fill_distiller(palette = "RdYlBu", limits=c(min(dataset_5ano$Matemática), max(dataset_5ano$Matemática)),
+                       name="IDeA")+
+  theme_minimal()
+```
+
+
+
+&nbsp;
+
+
+
+```{r, warning=FALSE, message=FALSE}
+ggplot() +
+  geom_sf(data=dataset_5ano, aes(fill=Português), color= NA, size=.15)+
+  labs(title="Aprendizagem em Português - 5° ano",
+       caption='', size=8)+
+  scale_fill_distiller(palette = "RdYlBu", limits=c(min(dataset_5ano$Português), max(dataset_5ano$Português)),
+                       name="IDeA")+
+  theme_minimal()
+```
+
+
+
+&nbsp;
+
+
+
+```{r, warning=FALSE, message=FALSE}
+dataset_9ano = left_join(all_mun_ms, Dados_IDeA_9ano, by=c("code_muni"="código_município"))
+
+ggplot() +
+  geom_sf(data=dataset_9ano, aes(fill=Matemática), color= NA, size=.15)+
+  labs(title="Aprendizagem em Matemática - 9° ano",
+       caption='', size=8)+
+  scale_fill_distiller(palette = "RdYlBu", limits=c(min(dataset_9ano$Matemática), max(dataset_9ano$Matemática)),
+                       name="IDeA")+
+  theme_minimal()
+```
+
+
+
+&nbsp;
+
+
+
+```{r, warning=FALSE, message=FALSE}
+ggplot() +
+  geom_sf(data=dataset_9ano, aes(fill=Português), color= NA, size=.15)+
+  labs(title="Aprendizagem em Português - 9° ano",
+       caption='', size=8)+
+  scale_fill_distiller(palette = "RdYlBu", limits=c(min(dataset_9ano$Português), max(dataset_9ano$Português)),
+                       name="IDeA")+
+  theme_minimal()
+```
